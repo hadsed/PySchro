@@ -40,12 +40,13 @@ for i in range(0, nx):
 # Normalize Psi
 psi /= sp.integrate.simps(psi2)
 
-# Set up spatial operator
+# Set up diagonal coefficients
 for i in range(0, nx) :
     Adiag[i] = 1 + i*dt/dx**2
     Asup[i] = -i*dt/(2*dx**2)
     Asub[i] = -i*dt/(2*dx**2)
 
+# Construct tridiagonal matrix
 A = sp.sparse.spdiags([Adiag, Asup, Asub], [0, 1, -1], nx, nx)
 
 # Plot parameters
@@ -56,6 +57,7 @@ ylimit = [0, 2*psi[nx/2]]
 for t in range(0, niter) :
     # Calculate effect of potential and nonlinearity
     psi *= sp.exp(-dt*(pot + nonlin))
+
     # Calculate spacial derivatives
     psi = sp.sparse.linalg.spsolve(A, psi)
 
