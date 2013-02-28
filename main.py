@@ -11,22 +11,26 @@ from scipy import integrate
 import pylab as pl
 import subprocess
 
-nx = 100
+nx = 10000
 dx = 0.0001
 dt = 0.000001
 niter = 20
 nonlin = 0.0
-gridx = sp.zeros(nx + 1)
-psi = sp.zeros(nx + 1)
-psi2 = sp.zeros(nx + 1)
-pot = sp.zeros(nx + 1)
+gridx = sp.zeros(nx)
+psi = sp.zeros(nx)
+psi2 = sp.zeros(nx)
+pot = sp.zeros(nx)
+depth = 0.003
 
 # Set up grid, potential, and initial state
-for i in range(0, nx + 1):
+for i in range(0, nx):
     gridx[i] = dx*(i - nx/2)
-    pot[i] = 1000*(gridx[i]**2)
-    psi[i] = sp.exp(-0.5*gridx[i]**2)
+    pot[i] = depth*(gridx[i]**2)
+    psi[i] = sp.exp(-0.5*50*gridx[i]**2)
     psi2[i] = psi[i]**2
+
+# Normalize Psi
+psi /= sp.integrate.simps(psi2)
 
 # Compute imaginary time
 alpha = sp.zeros(nx)
@@ -44,31 +48,25 @@ for i in range(nx - 1, 0, -1) :
     alpha[i - 1] = gamma[i]*tdS
     gamma[i - 1] = -1.0/(tdD + tdS*alpha[i - 1]);
 
-# Normalize Psi
-norm = sp.integrate.simps(psi2)
-for i in range(0, nx + 1) : psi[i] /= norm
-
 # Loop through time
 for t in range(0, niter) :
     # Calculate effect of potential and nonlinearity
-    for i in range(0, nx + 1) : psi[i] *= sp.exp(-dt*(pot[i] + nonlin*psi[i]**2))
+    psi *= sp.exp(-dt*(pot + nonlin*psi2))
 
     # Calculate spatial derivatives
-    beta[nx - 1] = psi[nx]
-    for i in range(nx - 1, 0, -1) :
+    beta[-1] = psi[-1]
+    for i in range(nx - 2, 0, -1) :
         bconst = psi[i] - (psi[i+1] - 2.0*psi[i] + psi[i-1])*tdS
         beta[i - 1] = gamma[i]*(tdS*beta[i] - bconst)
 
     # Calculate Psi2
-    for i in range(0, nx + 1) : psi2[i] = psi[i]**2
-
-    # Normalize Psi
-    norm = sp.integrate.simps(psi2)
-    for i in range(0, nx + 1) : psi[i] /= norm
+    psi2 = psi**2
 
     # Output figures
     pl.plot(gridx, psi)
     pl.plot(gridx, pot)
+    pl.xlim([gridx[0], gridx[-1]])
+    pl.ylim([0, psi[nx/2] + psi[nx/4]])
     pl.savefig('output/fig' + str(t))
     pl.clf()
     
