@@ -8,7 +8,7 @@ Description: n/a
 
 import scipy as sp
 import numpy as np
-from scipy import integrate, sparse
+from scipy import integrate, sparse, linalg
 import scipy.sparse.linalg
 import pylab as pl
 import subprocess
@@ -19,22 +19,22 @@ dt = 0.000001
 niter = 30
 nonlin = 0.0
 gridx = sp.zeros(nx)
+igridx = sp.array(range(nx))
 psi = sp.zeros(nx)
 psi2 = sp.zeros(nx)
 
 pot = sp.zeros(nx)
 depth = 0.00003
 
-Adiag = np.empty(nx)
-Asup = np.empty(nx)
-Asub = np.empty(nx)
+Adiag = sp.empty(nx)
+Asup = sp.empty(nx)
+Asub = sp.empty(nx)
 
 # Set up grid, potential, and initial state
-for i in range(0, nx):
-    gridx[i] = dx*(i - nx/2)
-    pot[i] = depth*(gridx[i]**2)
-    psi[i] = sp.exp(-0.5*gridx[i]**2)
-    psi2[i] = psi[i]**2
+gridx = dx*(igridx - nx/2)
+pot = depth*gridx**2
+psi = sp.exp(-0.5*gridx**2)
+psi2 = psi**2
 
 # Normalize Psi
 psi /= sp.integrate.simps(psi2)
@@ -47,6 +47,10 @@ ylimit = [0, 2*psi[nx/2]]
 Adiag.fill(1 + dt/dx**2)
 Asup.fill(-dt/(2*dx**2))
 Asub.fill(-dt/(2*dx**2))
+
+Adiag[0] = Adiag[-1] = 0
+Asup[1] = 0
+Asub[-2] = 0
 
 # Construct tridiagonal matrix
 A = sp.sparse.spdiags([Adiag, Asup, Asub], [0, 1, -1], nx, nx)
@@ -65,6 +69,7 @@ for t in range(0, niter) :
     # Plot parameters
     xlimit = [gridx[0], gridx[-1]]
     ylimit = [0, 2*psi[nx/2]]
+
     # Output figures
     pl.plot(gridx, psi)
     pl.plot(gridx, pot)
