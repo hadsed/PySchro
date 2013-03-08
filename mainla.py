@@ -22,7 +22,7 @@ gridx = sp.zeros(nx)
 igridx = sp.array(range(nx))
 psi = sp.zeros(nx)
 pot = sp.zeros(nx)
-depth = 0.1
+depth = 0.01
 
 # Set up grid, potential, and initial state
 gridx = dx*(igridx - nx/2)
@@ -30,7 +30,7 @@ pot = depth*gridx*gridx
 psi = sp.pi**(-1/4)*sp.exp(-0.5*gridx*gridx)
 
 # Normalize Psi
-psi /= sp.integrate.simps(psi*psi, dx=dx)
+#psi /= sp.integrate.simps(psi*psi, dx=dx)
 
 # Plot parameters
 xlimit = [gridx[0], gridx[-1]]
@@ -40,18 +40,25 @@ ylimit = [0, 2*psi[nx/2]]
 Adiag = sp.empty(nx)
 Asup = sp.empty(nx)
 Asub = sp.empty(nx)
+bdiag = sp.empty(nx)
+bsup = sp.empty(nx)
+bsub = sp.empty(nx)
 Adiag.fill(1 - dt/dx**2)
 Asup.fill(dt/(2*dx**2))
 Asub.fill(dt/(2*dx**2))
+bdiag.fill(1 + dt/dx**2)
+bsup.fill(-dt/(2*dx**2))
+bsub.fill(-dt/(2*dx**2))
 
 # Impose boundary conditions
-Adiag[0] = 0
-Adiag[-1] = 0
-Asup[1] = 0
-Asub[-2] = 0
+Adiag[0] = Adiag[-1] = 0
+Asup[1] = Asub[-2] = 0
+bdiag[0] = bdiag[-1] = 0
+bsup[1] = bsub[-2] = 0
 
 # Construct tridiagonal matrix
 A = sp.sparse.spdiags([Adiag, Asup, Asub], [0, 1, -1], nx, nx)
+b = sp.sparse.spdiags([bdiag, bsup, bsub], [0, 1, -1], nx, nx)
 
 # Loop through time
 for t in range(0, niter) :
@@ -59,7 +66,7 @@ for t in range(0, niter) :
     psi *= sp.exp(-dt*(pot + nonlin*psi*psi))
     
     # Calculate spacial derivatives
-    psi = sp.sparse.linalg.spsolve(A, psi)
+    psi = sp.sparse.linalg.spsolve(A, b*psi)
 
     # Normalize Psi
     psi /= sp.integrate.simps(psi*psi, dx=dx)
