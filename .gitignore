@@ -1,0 +1,7 @@
+*.png
+*.jpg
+*.gif
+*.log
+._*
+data
+output

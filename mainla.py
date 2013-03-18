@@ -50,12 +50,6 @@ bdiag.fill(1 + dt/dx**2)
 bsup.fill(-dt/(2*dx**2))
 bsub.fill(-dt/(2*dx**2))
 
-# Impose boundary conditions
-Adiag[0] = Adiag[-1] = 0
-Asup[1] = Asub[-2] = 0
-bdiag[0] = bdiag[-1] = 0
-bsup[1] = bsub[-2] = 0
-
 # Construct tridiagonal matrix
 A = sp.sparse.spdiags([Adiag, Asup, Asub], [0, 1, -1], nx, nx)
 b = sp.sparse.spdiags([bdiag, bsup, bsub], [0, 1, -1], nx, nx)
@@ -64,9 +58,9 @@ b = sp.sparse.spdiags([bdiag, bsup, bsub], [0, 1, -1], nx, nx)
 for t in range(0, niter) :
     # Calculate effect of potential and nonlinearity
     psi *= sp.exp(-dt*(pot + nonlin*psi*psi))
-    
+
     # Calculate spacial derivatives
-    psi = sp.sparse.linalg.spsolve(A, b*psi)
+    psi = sp.sparse.linalg.bicg(A, b*psi)[0]
 
     # Normalize Psi
     psi /= sp.integrate.simps(psi*psi, dx=dx)
