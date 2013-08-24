@@ -13,7 +13,7 @@ from scipy import integrate
 iterations              = 100
 solver                  = 'SplitStepCrankNicolson'
 outputDirectory         = 'data/'
-imaginaryTime           = True
+imaginaryTime           = False
 
 # Grid parameters
 nDimensions             = 1
@@ -26,12 +26,12 @@ igx                     = sp.arange(nXPoints)
 xGrid                   = xStep*(igx - nXPoints/2)
 
 # Numerical value of nonlinear term
-nonlinearTerm           = 0
+nonlinearTerm           = 10.0
 
 # Specify intial wavefunction
 psi                     = sp.exp(-0.5*xGrid**2)
 initialWaveFunction     = psi / sp.sqrt(sp.integrate.simps(psi*psi, dx=xStep))
 
 # Specify potential
-depth                   = 0.01
+depth                   = 0.0
 potential               = depth*xGrid**2
