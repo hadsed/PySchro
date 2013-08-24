@@ -3,6 +3,10 @@
 *.gif
 *.log
 ._*
+*.pyc
 data
 output
 *~
+#*#
+#*
+*#

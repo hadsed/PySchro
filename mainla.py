@@ -16,20 +16,21 @@ nx = 800
 dx = 0.025
 dt = 0.02
 niter = 100
-nonlin = 15.0
+nonlin = 0*15.0
 gridx = sp.zeros(nx)
 igridx = sp.array(range(nx))
 psi = sp.zeros(nx)
 pot = sp.zeros(nx)
-depth = 0.1
+depth = 0.01
 
 # Set up grid, potential, and initial state
 gridx = dx*(igridx - nx/2)
 pot = depth*gridx*gridx
 psi = sp.pi**(-1/4)*sp.exp(-0.5*gridx*gridx)
+psi = sp.exp(-0.5*gridx*gridx)
 
 # Normalize Psi
-#psi /= sp.integrate.simps(psi*psi, dx=dx)
+psi /= sp.sqrt(sp.integrate.simps(psi*psi, dx=dx))
 
 # Plot parameters
 xlimit = [gridx[0], gridx[-1]]
@@ -62,7 +63,7 @@ for t in range(0, niter) :
     psi = sp.sparse.linalg.bicg(A, b*psi)[0]
 
     # Normalize Psi
-    psi = psi/sp.integrate.simps(psi*psi, dx=dx)
+    psi /= sp.sqrt(sp.integrate.simps(psi*psi, dx=dx))
 
     # Output figures
     pl.plot(gridx, psi)
